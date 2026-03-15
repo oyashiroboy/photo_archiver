@@ -1,0 +1,78 @@
+{
+  "generatedAt": "2026-03-15T11:27:22.317Z",
+  "site": {
+    "title": "Sample Photo Archive",
+    "subtitle": "static/IMG から生成したサンプルギャラリー",
+    "favicon": "IMG_thumb/猫/P5050019.webp",
+    "noticeHtml": "このページは <code>static/IMG</code> の内容から自動生成されています。<br>画像クリックで拡大表示、ZIPでセクション単位ダウンロードが可能です。",
+    "footer": "&copy; Sample Photo Archive",
+    "hero": {
+      "thumb": "IMG_thumb/猫/P5050019.webp",
+      "light": "IMG_light/猫/P5050019.jpg",
+      "original": "IMG/猫/P5050019.jpg",
+      "caption": "猫（サンプル）"
+    }
+  },
+  "tabs": [
+    {
+      "id": "nature",
+      "label": "自然",
+      "descriptionHtml": "<strong>自然タブ:</strong> 風景と植物の写真をまとめています。",
+      "sections": [
+        {
+          "id": "flower",
+          "title": "花",
+          "folder": "IMG/花",
+          "files": [
+            "P3071126.jpg",
+            "P7130013.jpg",
+            "P8120719.jpg"
+          ],
+          "lightSizeMB": 1,
+          "zipName": "flower.zip",
+          "isOral": false
+        },
+        {
+          "id": "lake",
+          "title": "宍道湖",
+          "folder": "IMG/宍道湖",
+          "files": [
+            "P2280861.jpg",
+            "P3031044.jpg"
+          ],
+          "lightSizeMB": 1,
+          "zipName": "lake.zip",
+          "isOral": false
+        }
+      ]
+    },
+    {
+      "id": "animals",
+      "label": "動物",
+      "descriptionHtml": "<strong>動物タブ:</strong> 動物の写真をまとめています。",
+      "sections": [
+        {
+          "id": "cat",
+          "title": "猫",
+          "folder": "IMG/猫",
+          "files": [
+            "P4290754.jpg",
+            "P5050019.jpg"
+          ],
+          "lightSizeMB": 1,
+          "zipName": "cat.zip",
+          "isOral": false
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "imageCount": 7,
+    "originalMB": 37,
+    "lightMB": 3,
+    "thumbMB": 0,
+    "lightReductionPercent": 92.9,
+    "thumbReductionPercent": 99.7,
+    "zipWarnings": []
+  }
+}

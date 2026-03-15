@@ -1,0 +1,70 @@
+{
+  "site": {
+    "title": "Sample Photo Archive",
+    "subtitle": "static/IMG から生成したサンプルギャラリー",
+    "favicon": "IMG_thumb/猫/P5050019.webp",
+    "noticeHtml": "このページは <code>static/IMG</code> の内容から自動生成されています。<br>画像クリックで拡大表示、ZIPでセクション単位ダウンロードが可能です。",
+    "footer": "&copy; Sample Photo Archive",
+    "hero": {
+      "thumb": "IMG_thumb/猫/P5050019.webp",
+      "light": "IMG_light/猫/P5050019.jpg",
+      "original": "IMG/猫/P5050019.jpg",
+      "caption": "猫（サンプル）"
+    }
+  },
+  "deploy": {
+    "workerName": "photo-archive-sample"
+  },
+  "paths": {
+    "originalRoot": "static/IMG",
+    "lightRoot": "static/IMG_light",
+    "thumbRoot": "static/IMG_thumb",
+    "zipRoot": "static/ZIP",
+    "galleryDataPath": "static/gallery-data.json"
+  },
+  "image": {
+    "lightShortSide": 1900,
+    "lightJpegQuality": 80,
+    "thumbWidth": 400,
+    "thumbWebpQuality": 70,
+    "batch": 4
+  },
+  "zip": {
+    "maxSizeMiB": 25,
+    "recompressLevel": 9
+  },
+  "tabs": [
+    {
+      "id": "nature",
+      "label": "自然",
+      "descriptionHtml": "<strong>自然タブ:</strong> 風景と植物の写真をまとめています。",
+      "sections": [
+        {
+          "id": "flower",
+          "title": "花",
+          "folder": "花",
+          "zipEnabled": true
+        },
+        {
+          "id": "lake",
+          "title": "宍道湖",
+          "folder": "宍道湖",
+          "zipEnabled": true
+        }
+      ]
+    },
+    {
+      "id": "animals",
+      "label": "動物",
+      "descriptionHtml": "<strong>動物タブ:</strong> 動物の写真をまとめています。",
+      "sections": [
+        {
+          "id": "cat",
+          "title": "猫",
+          "folder": "猫",
+          "zipEnabled": true
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Photo Archive</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: "Hiragino Kaku Gothic ProN", "Noto Sans JP", "Meiryo", sans-serif;
+    background: #f5f5f0;
+    color: #333;
+    line-height: 1.6;
+  }
+
+  header {
+    background: linear-gradient(135deg, #1a5632, #2e8b57);
+    color: #fff;
+    text-align: center;
+    padding: 2rem 1rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  }
+  header h1 {
+    font-size: clamp(1.2rem, 4vw, 1.8rem);
+    margin-bottom: 0.3rem;
+  }
+  header p {
+    font-size: 0.95rem;
+    opacity: 0.9;
+  }
+
+  .hero-photo {
+    text-align: center;
+    background: #fff;
+    padding: 1.5rem 1rem;
+    border-bottom: 3px solid #2e8b57;
+  }
+  .hero-photo img {
+    max-width: min(600px, 90%);
+    height: auto;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    cursor: pointer;
+  }
+  .hero-photo p {
+    margin-top: 0.75rem;
+    font-weight: bold;
+    color: #555;
+  }
+
+  .notice {
+    max-width: 900px;
+    margin: 1rem auto;
+    padding: 0.8rem 1.2rem;
+    background: #fff8e1;
+    border-left: 4px solid #ffa000;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    line-height: 1.7;
+  }
+  .notice strong { color: #e65100; }
+
+  /* Day Tabs */
+  .day-tabs {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+    margin: 1.5rem auto 0;
+    max-width: 900px;
+    padding: 0 1rem;
+  }
+  .day-tab {
+    flex: 1;
+    max-width: 250px;
+    padding: 0.75rem 1rem;
+    text-align: center;
+    font-size: 1rem;
+    font-weight: bold;
+    border: 2px solid #2e8b57;
+    border-bottom: none;
+    border-radius: 8px 8px 0 0;
+    background: #e8f5e9;
+    color: #2e8b57;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .day-tab:hover { background: #c8e6c9; }
+  .day-tab.active {
+    background: #2e8b57;
+    color: #fff;
+  }
+
+  .day-content {
+    display: none;
+    max-width: 900px;
+    margin: 0 auto 2rem;
+    background: #fff;
+    border: 2px solid #2e8b57;
+    border-radius: 8px;
+    padding: 1rem;
+  }
+  .day-content.active { display: block; }
+
+  /* Section (Accordion) */
+  .section { margin-bottom: 0.5rem; border: 1px solid #ddd; border-radius: 6px; overflow: hidden; }
+  .section-header {
+    display: flex;
+    align-items: center;
+    padding: 0.8rem 1rem;
+    background: #f0f7f1;
+    cursor: pointer;
+    user-select: none;
+    font-weight: bold;
+    font-size: 0.95rem;
+    transition: background 0.2s;
+    gap: 0.5rem;
+  }
+  .section-header:hover { background: #dcedc8; }
+  .section-header .arrow {
+    transition: transform 0.3s;
+    font-size: 0.8rem;
+    flex-shrink: 0;
+  }
+  .section.open .section-header .arrow { transform: rotate(90deg); }
+  .section-header .title-text { flex: 1; }
+  .section-header .badge {
+    margin-left: auto;
+    background: #2e8b57;
+    color: #fff;
+    font-size: 0.75rem;
+    padding: 0.15rem 0.5rem;
+    border-radius: 10px;
+    flex-shrink: 0;
+  }
+  .section-body {
+    display: none;
+    padding: 0.75rem;
+  }
+  .section.open .section-body { display: block; }
+
+  /* Gallery Grid */
+  .gallery {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 8px;
+  }
+  .gallery-item {
+    aspect-ratio: 4 / 3;
+    overflow: hidden;
+    border-radius: 4px;
+    cursor: pointer;
+    background: #eee;
+    position: relative;
+  }
+  .gallery-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s;
+    display: block;
+  }
+  .gallery-item:hover img { transform: scale(1.05); }
+
+  /* Lightbox */
+  .lightbox {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background: rgba(0,0,0,0.92);
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+  }
+  .lightbox.show { display: flex; }
+  .lightbox img {
+    max-width: 92vw;
+    max-height: 82vh;
+    object-fit: contain;
+    border-radius: 4px;
+    box-shadow: 0 0 30px rgba(0,0,0,0.5);
+  }
+  .lightbox-close {
+    position: absolute;
+    top: 1rem;
+    right: 1.5rem;
+    color: #fff;
+    font-size: 2.5rem;
+    cursor: pointer;
+    line-height: 1;
+    z-index: 10;
+    text-shadow: 0 0 8px rgba(0,0,0,0.6);
+  }
+  .lightbox-close:hover { color: #ccc; }
+  .lightbox-nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #fff;
+    font-size: 3rem;
+    cursor: pointer;
+    padding: 0.5rem;
+    user-select: none;
+    text-shadow: 0 0 8px rgba(0,0,0,0.6);
+    z-index: 10;
+  }
+  .lightbox-nav.prev { left: 1rem; }
+  .lightbox-nav.next { right: 1rem; }
+  .lightbox-nav:hover { color: #ccc; }
+  .lightbox-counter {
+    color: #ccc;
+    margin-top: 0.75rem;
+    font-size: 0.9rem;
+  }
+  .lightbox-dl-wrap {
+    display: flex;
+    gap: 0.6rem;
+    margin-top: 0.5rem;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .lightbox-download {
+    color: #8fc9a9;
+    text-decoration: none;
+    font-size: 0.85rem;
+    border: 1px solid #8fc9a9;
+    padding: 0.3rem 1rem;
+    border-radius: 4px;
+    transition: all 0.2s;
+  }
+  .lightbox-download:hover { background: #8fc9a9; color: #000; }
+  .lightbox-download.original {
+    color: #ccc;
+    border-color: #888;
+    border-style: dashed;
+  }
+  .lightbox-download.original:hover { background: #888; color: #000; }
+
+  .btn-download {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.5rem 1.2rem;
+    border: 2px solid #2e8b57;
+    border-radius: 6px;
+    background: #fff;
+    color: #2e8b57;
+    font-size: 0.85rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-decoration: none;
+  }
+  .btn-download:hover { background: #2e8b57; color: #fff; }
+  .btn-download.section-dl {
+    font-size: 0.78rem;
+    padding: 0.3rem 0.8rem;
+    border-width: 1px;
+  }
+  .btn-download svg {
+    width: 16px;
+    height: 16px;
+    fill: currentColor;
+    flex-shrink: 0;
+  }
+
+  footer {
+    text-align: center;
+    padding: 1.5rem;
+    background: #333;
+    color: #aaa;
+    font-size: 0.8rem;
+  }
+
+  /* Oral notice */
+  .oral-notice {
+    background: #fff3e0;
+    border: 1px solid #ffcc80;
+    border-radius: 4px;
+    padding: 0.6rem 0.8rem;
+    margin-bottom: 0.75rem;
+    font-size: 0.85rem;
+    color: #e65100;
+  }
+
+  .iinan-notice {
+    background: #e8f5e9;
+    border: 1px solid #a5d6a7;
+    border-radius: 6px;
+    padding: 0.8rem 1rem;
+    margin-bottom: 1rem;
+    font-size: 0.88rem;
+    line-height: 1.8;
+    color: #2e7d32;
+  }
+  .iinan-notice strong { color: #1b5e20; }
+  .iinan-notice .warn { color: #e65100; }
+
+  .section-dl-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.4rem;
+    margin-bottom: 0.5rem;
+    flex-wrap: wrap;
+  }
+  .section-dl-wrap .size-hint {
+    font-size: 0.75rem;
+    color: #888;
+    margin-right: auto;
+  }
+
+  @media (max-width: 600px) {
+    .gallery { grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 4px; }
+    .lightbox-nav { font-size: 2rem; }
+    .section-header { font-size: 0.85rem; padding: 0.7rem 0.8rem; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1 id="site-title">Photo Archive</h1>
+  <p id="site-subtitle">Event Gallery</p>
+</header>
+
+<div class="hero-photo" id="hero-photo" style="display:none;">
+  <img id="hero-image" src="" alt="Hero photo">
+  <p id="hero-caption"></p>
+</div>
+
+<div class="notice" id="site-notice">
+  写真をクリックすると拡大表示されます。拡大表示中にダウンロードも可能です。
+</div>
+
+<div class="day-tabs" id="day-tabs"></div>
+
+<div id="day-contents"></div>
+
+<!-- Lightbox -->
+<div class="lightbox" id="lightbox">
+  <span class="lightbox-close" onclick="closeLightbox()">&times;</span>
+  <span class="lightbox-nav prev" onclick="navLightbox(-1)">&#10094;</span>
+  <span class="lightbox-nav next" onclick="navLightbox(1)">&#10095;</span>
+  <img id="lightbox-img" src="" alt="拡大写真">
+  <div class="lightbox-counter" id="lightbox-counter"></div>
+  <div class="lightbox-dl-wrap">
+    <a class="lightbox-download" id="lightbox-dl-light" href="" download>軽量版ダウンロード</a>
+    <a class="lightbox-download original" id="lightbox-dl-original" href="" download>高画質ダウンロード</a>
+  </div>
+</div>
+
+<footer>
+  <span id="site-footer">&copy; Photo Archive Team</span>
+</footer>
+
+<script>
+let sectionsByTab = {};
+let dayOrder = [];
+let sectionIndex = new Map();
+
+let lbImages = [];
+let lbOriginals = [];
+let lbIndex = 0;
+
+function escapeHtml(text) {
+  return String(text)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/\"/g, "&quot;");
+}
+
+function thumbName(file) {
+  return file.replace(/\.(jpe?g|png)$/i, ".webp");
+}
+
+function findSec(id) {
+  return sectionIndex.get(id) || null;
+}
+
+function showBuildHint(message) {
+  const contents = document.getElementById("day-contents");
+  const div = document.createElement("div");
+  div.className = "day-content active";
+  div.style.display = "block";
+  div.innerHTML = `<div class="notice"><strong>${escapeHtml(message)}</strong><br>先に <code>npm run build:gallery</code> を実行してください。</div>`;
+  contents.appendChild(div);
+}
+
+function applySiteMeta(site) {
+  document.title = site?.title || "Photo Archive";
+  document.getElementById("site-title").textContent = site?.title || "Photo Archive";
+  document.getElementById("site-subtitle").textContent = site?.subtitle || "Event Gallery";
+  document.getElementById("site-footer").innerHTML = site?.footer || "&copy; Photo Archive Team";
+  if (site?.noticeHtml) {
+    document.getElementById("site-notice").innerHTML = site.noticeHtml;
+  }
+
+  if (site?.favicon) {
+    setFavicon(site.favicon);
+  }
+
+  const hero = site?.hero;
+  if (hero?.thumb && hero?.light) {
+    const wrap = document.getElementById("hero-photo");
+    const img = document.getElementById("hero-image");
+    const caption = document.getElementById("hero-caption");
+    img.src = hero.thumb;
+    img.alt = hero.caption || "Hero photo";
+    img.onclick = function() {
+      openLightboxSingle(encodeURI(hero.light), encodeURI(hero.original || hero.light));
+    };
+    caption.textContent = hero.caption || "";
+    wrap.style.display = "block";
+  }
+}
+
+function setFavicon(favicon) {
+  const iconHref = typeof favicon === "string" ? favicon : favicon?.href;
+  if (!iconHref) return;
+
+  const iconType = typeof favicon === "object" && favicon?.type ? favicon.type : "image/x-icon";
+  let link = document.querySelector('link[rel="icon"]');
+  if (!link) {
+    link = document.createElement("link");
+    link.rel = "icon";
+    document.head.appendChild(link);
+  }
+
+  link.type = iconType;
+  link.href = iconHref;
+}
+
+function buildTabsAndContainers(tabs) {
+  const tabWrap = document.getElementById("day-tabs");
+  const contentWrap = document.getElementById("day-contents");
+
+  tabs.forEach((tab, index) => {
+    const tabEl = document.createElement("div");
+    tabEl.className = `day-tab${index === 0 ? " active" : ""}`;
+    tabEl.textContent = tab.label;
+    tabEl.dataset.day = tab.id;
+    tabEl.onclick = function() {
+      switchDay(tab.id);
+    };
+    tabWrap.appendChild(tabEl);
+
+    const content = document.createElement("div");
+    content.className = `day-content${index === 0 ? " active" : ""}`;
+    content.id = tab.id;
+    contentWrap.appendChild(content);
+  });
+}
+
+function buildSections(dayKey) {
+  const container = document.getElementById(dayKey);
+  const tabSections = sectionsByTab[dayKey] || [];
+  const tabInfo = dayOrder.find((d) => d.id === dayKey);
+
+  if (tabInfo && tabInfo.descriptionHtml) {
+    const notice = document.createElement("div");
+    notice.className = "iinan-notice";
+    notice.innerHTML = tabInfo.descriptionHtml;
+    container.appendChild(notice);
+  }
+
+  tabSections.forEach((sec) => {
+    sectionIndex.set(sec.id, sec);
+
+    const div = document.createElement("div");
+    div.className = "section";
+    div.id = "sec-" + sec.id;
+
+    let bodyInner = "";
+    if (sec.isOral) {
+      bodyInner += '<div class="oral-notice">口頭発表の写真は全演目を撮影できておらず、また画像編集は自動処理の場合があります。ご了承ください。</div>';
+    }
+    bodyInner += '<div class="gallery" id="gallery-' + sec.id + '"></div>';
+
+    const zipButton = sec.zipName
+      ? '<a class="btn-download section-dl" href="ZIP/' + sec.zipName + '" download>' +
+          '<svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>' +
+          'ZIPダウンロード 約' + sec.lightSizeMB + 'MB' +
+        '</a>'
+      : '<span class="size-hint">ZIP未設定</span>';
+
+    div.innerHTML =
+      '<div class="section-header" onclick="toggleSection(\'' + sec.id + '\')">' +
+        '<span class="arrow">\u25B6</span>' +
+        '<span class="title-text">' + escapeHtml(sec.title) + '</span>' +
+        '<span class="badge">' + sec.files.length + '\u679A</span>' +
+      '</div>' +
+      '<div class="section-body" id="body-' + sec.id + '">' +
+        '<div class="section-dl-wrap">' +
+          zipButton +
+        '</div>' +
+        bodyInner +
+      '</div>';
+
+    container.appendChild(div);
+  });
+}
+
+function loadGallery(id) {
+  const sec = findSec(id);
+  if (!sec) return;
+
+  const gallery = document.getElementById("gallery-" + id);
+  const thumbFolder = sec.folder.replace(/^IMG\//, "IMG_thumb/");
+
+  sec.files.forEach((file, i) => {
+    const thumbSrc = thumbFolder + "/" + thumbName(file);
+    const item = document.createElement("div");
+    item.className = "gallery-item";
+    item.innerHTML = '<img data-src="' + encodeURI(thumbSrc) + '" alt="' + escapeHtml(sec.title) + ' ' + (i + 1) + '" loading="lazy">';
+    item.onclick = function() {
+      openLightbox(id, i);
+    };
+    gallery.appendChild(item);
+  });
+
+  observeImages(gallery);
+}
+
+function toggleSection(id) {
+  const sec = document.getElementById("sec-" + id);
+  const wasOpen = sec.classList.contains("open");
+  sec.classList.toggle("open");
+
+  if (!wasOpen && !sec.dataset.loaded) {
+    loadGallery(id);
+    sec.dataset.loaded = "1";
+  }
+}
+
+function observeImages(container) {
+  const imgs = container.querySelectorAll("img[data-src]");
+  const observer = new IntersectionObserver(function(entries, obs) {
+    entries.forEach(function(e) {
+      if (!e.isIntersecting) return;
+      const img = e.target;
+      img.src = img.dataset.src;
+      img.removeAttribute("data-src");
+      obs.unobserve(img);
+    });
+  }, { rootMargin: "200px" });
+
+  imgs.forEach(function(img) {
+    observer.observe(img);
+  });
+}
+
+function switchDay(dayKey) {
+  document.querySelectorAll(".day-tab").forEach((t) => {
+    t.classList.toggle("active", t.dataset.day === dayKey);
+  });
+  document.querySelectorAll(".day-content").forEach((c) => {
+    c.classList.toggle("active", c.id === dayKey);
+  });
+}
+
+function openLightbox(sectionId, index) {
+  const sec = findSec(sectionId);
+  if (!sec) return;
+
+  const lightFolder = sec.folder.replace(/^IMG\//, "IMG_light/");
+  lbImages = sec.files.map((f) => encodeURI(lightFolder + "/" + f));
+  lbOriginals = sec.files.map((f) => encodeURI(sec.folder + "/" + f));
+  lbIndex = index;
+  showLightbox();
+}
+
+function openLightboxSingle(lightSrc, originalSrc) {
+  lbImages = [lightSrc];
+  lbOriginals = [originalSrc || lightSrc];
+  lbIndex = 0;
+  showLightbox();
+}
+
+function showLightbox() {
+  const lb = document.getElementById("lightbox");
+  const img = document.getElementById("lightbox-img");
+  const counter = document.getElementById("lightbox-counter");
+  const dlLight = document.getElementById("lightbox-dl-light");
+  const dlOriginal = document.getElementById("lightbox-dl-original");
+
+  img.src = lbImages[lbIndex];
+  counter.textContent = lbImages.length > 1 ? `${lbIndex + 1} / ${lbImages.length}` : "";
+  dlLight.href = lbImages[lbIndex];
+  dlOriginal.href = lbOriginals[lbIndex];
+  lb.classList.add("show");
+  document.body.style.overflow = "hidden";
+}
+
+function closeLightbox() {
+  document.getElementById("lightbox").classList.remove("show");
+  document.getElementById("lightbox-img").src = "";
+  document.body.style.overflow = "";
+}
+
+function navLightbox(dir) {
+  lbIndex = (lbIndex + dir + lbImages.length) % lbImages.length;
+  showLightbox();
+}
+
+async function init() {
+  try {
+    const res = await fetch("gallery-data.json", { cache: "no-store" });
+    if (!res.ok) {
+      throw new Error(`gallery-data.json not found (status: ${res.status})`);
+    }
+
+    const data = await res.json();
+    if (!Array.isArray(data.tabs) || data.tabs.length === 0) {
+      throw new Error("gallery-data.json has no tabs");
+    }
+
+    applySiteMeta(data.site || {});
+    sectionsByTab = Object.fromEntries(data.tabs.map((tab) => [tab.id, tab.sections || []]));
+    dayOrder = data.tabs;
+    buildTabsAndContainers(data.tabs);
+
+    data.tabs.forEach((tab) => buildSections(tab.id));
+    switchDay(data.tabs[0].id);
+  } catch (error) {
+    console.error(error);
+    showBuildHint("ギャラリーデータが見つかりません。");
+  }
+}
+
+document.addEventListener("keydown", function(e) {
+  const lb = document.getElementById("lightbox");
+  if (!lb.classList.contains("show")) return;
+  if (e.key === "Escape") closeLightbox();
+  if (e.key === "ArrowLeft") navLightbox(-1);
+  if (e.key === "ArrowRight") navLightbox(1);
+});
+
+document.getElementById("lightbox").addEventListener("click", function(e) {
+  if (e.target === e.currentTarget) closeLightbox();
+});
+
+init();
+</script>
+
+</body>
+</html>
