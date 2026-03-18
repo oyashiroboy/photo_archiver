@@ -68,16 +68,7 @@ npm run deploy:gallery
 Basic認証は有効です。`GALLERY_PASSWORD` が必須です。
 
 - ローカル: `.dev.vars` に `GALLERY_PASSWORD=your-password`
-- 本番: `wrangler secret put GALLERY_PASSWORD`
-
-## 設定仕様
-
-詳細は `docs/config-schema.md` を参照してください。
-
-## OSS公開時の注意
-
-- 実写真データ（`static/IMG*`, `static/ZIP`）は公開前に削除してください
-- サンプル画像や `.gitkeep` のみ残す運用を推奨します
+- 本番: `wrangler secret put GALLERY_PASSWORD`(WebUIからも設定可能)
 
 ## License
 
